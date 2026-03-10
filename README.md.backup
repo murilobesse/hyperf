@@ -1,0 +1,415 @@
+# Introduction
+
+This is a skeleton application using the Hyperf framework. This application is meant to be used as a starting place for those looking to get their feet wet with Hyperf Framework.
+
+# Requirements
+
+Hyperf has some requirements for the system environment, it can only run under Linux and Mac environment, but due to the development of Docker virtualization technology, Docker for Windows can also be used as the running environment under Windows.
+
+The various versions of Dockerfile have been prepared for you in the [hyperf/hyperf-docker](https://github.com/hyperf/hyperf-docker) project, or directly based on the already built [hyperf/hyperf](https://hub.docker.com/r/hyperf/hyperf) Image to run.
+
+When you don't want to use Docker as the basis for your running environment, you need to make sure that your operating environment meets the following requirements:  
+
+ - PHP >= 8.1
+ - Any of the following network engines
+   - Swoole PHP extension >= 5.0，with `swoole.use_shortname` set to `Off` in your `php.ini`
+   - Swow PHP extension >= 1.3
+ - JSON PHP extension
+ - Pcntl PHP extension
+ - OpenSSL PHP extension （If you need to use the HTTPS）
+ - PDO PHP extension （If you need to use the MySQL Client）
+ - Redis PHP extension （If you need to use the Redis Client）
+ - Protobuf PHP extension （If you need to use the gRPC Server or Client）
+
+# Installation using Composer
+
+The easiest way to create a new Hyperf project is to use [Composer](https://getcomposer.org/). If you don't have it already installed, then please install as per [the documentation](https://getcomposer.org/download/).
+
+To create your new Hyperf project:
+
+```bash
+composer create-project hyperf/hyperf-skeleton path/to/install
+```
+
+If your development environment is based on Docker you can use the official Composer image to create a new Hyperf project:
+
+```bash
+docker run --rm -it -v $(pwd):/app composer create-project --ignore-platform-reqs hyperf/hyperf-skeleton path/to/install
+```
+
+# Getting started
+
+Once installed, you can run the server immediately using the command below.
+
+```bash
+cd path/to/install
+php bin/hyperf.php start
+```
+
+Or if in a Docker based environment you can use the `docker-compose.yml` provided by the template:
+
+```bash
+cd path/to/install
+docker-compose up
+```
+
+This will start the cli-server on port `9501`, and bind it to all network interfaces. You can then visit the site at `http://localhost:9501/` which will bring up Hyperf default home page.
+
+## Estrutura da aplicação
+
+```
+hyperf/
+├── app/
+│   ├── Controller/
+│   │   ├── AbstractController.php    # Base para todos os controllers
+│   │   ├── IndexController.php       # Controller de exemplo (GET /)
+│   │   └── UserController.php        # CRUD de usuários com Attributes
+│   ├── Middleware/
+│   │   ├── AuthMiddleware.php        # Valida token de autenticação
+│   │   ├── AdminMiddleware.php       # Verifica permissão de administrador
+│   │   └── LogMiddleware.php         # Registra requisições e respostas
+│   ├── Exception/Handler/
+│   │   └── AppExceptionHandler.php   # Handler de exceções da aplicação
+│   ├── Listener/
+│   │   └── DBQueryExecutedListener.php
+│   └── Model/
+│       └── Model.php                 # Base para models do banco de dados
+├── bin/
+│   └── hyperf.php                    # Script de inicialização do Hyperf
+├── config/
+│   ├── config.php                    # Configurações gerais da aplicação
+│   ├── routes.php                    # Rotas (vazio ao usar Attributes)
+│   └── autoload/
+│       ├── annotations.php           # Config de scan de annotations/attributes
+│       ├── server.php                # Config do servidor HTTP (porta 9501)
+│       ├── middlewares.php           # Middlewares globais por servidor
+│       ├── databases.php             # Config de conexões de banco de dados
+│       ├── redis.php                 # Config de conexões Redis
+│       ├── logger.php                # Config de logs
+│       ├── exceptions.php            # Config de handlers de exceção
+│       ├── listeners.php             # Config de listeners de eventos
+│       ├── commands.php              # Config de comandos CLI
+│       ├── processes.php             # Config de processos customizados
+│       ├── aspects.php               # Config de AOP (Aspect Oriented Programming)
+│       ├── dependencies.php          # Config de injeção de dependência
+│       ├── cache.php                 # Config de cache
+│       └── devtool.php               # Config de ferramentas de desenvolvimento
+├── runtime/
+│   ├── container/                    # Cache de container DI
+│   ├── logs/
+│   │   └── hyperf.log                # Logs da aplicação
+│   └── hyperf.pid                    # PID do servidor
+├── test/
+│   ├── Cases/
+│   │   └── ExampleTest.php
+│   └── Bootstrap.php
+├── .env                              # Variáveis de ambiente (APP_NAME, DB, REDIS)
+├── .env.example                      # Exemplo de variáveis de ambiente
+├── .watcher.php                      # Configuração do Hot Reload Watcher
+├── docker-compose.yml                # Configuração Docker Compose
+├── dev.Dockerfile                    # Dockerfile para desenvolvimento
+├── composer.json                     # Dependências do projeto
+├── composer.lock                     # Lock das dependências
+└── README.md                         # Este arquivo
+```
+
+
+## Docker e Docker Compose
+
+Este projeto inclui configuração completa para desenvolvimento com Docker, eliminando a necessidade de instalar PHP, Swoole e outras dependências diretamente no seu sistema.
+
+### 🐋 Arquitetura
+
+| Arquivo | Descrição |
+|---------|-----------|
+| `dev.Dockerfile` | Imagem baseada em `hyperf/hyperf:8.4-alpine-v3.21-swoole` |
+| `docker-compose.yml` | Orquestração do container com volumes e portas |
+
+### 🚀 Quick Start
+
+#### 1. Subir o container
+
+```bash
+# Build e start
+docker-compose up -d
+
+# Ou com rebuild forçado
+docker-compose up --build -d
+```
+
+#### 2. Acessar a aplicação
+
+```
+http://localhost:9501
+```
+
+#### 3. Comandos úteis
+
+```bash
+# Ver logs em tempo real
+docker-compose logs -f hyperf-skeleton
+
+# Ver apenas as últimas linhas
+docker-compose logs --tail=50 hyperf-skeleton
+
+# Parar o container
+docker-compose down
+
+# Reiniciar o container
+docker-compose restart hyperf-skeleton
+
+# Rebuild completo (remove e recria)
+docker-compose down && docker-compose up --build -d
+```
+
+---
+
+### 📦 Configuração do Container
+
+#### **docker-compose.yml**
+
+```yaml
+services:
+  hyperf-skeleton:
+    container_name: hyperf-skeleton
+    image: hyperf-skeleton
+    build:
+      dockerfile: dev.Dockerfile
+      args:
+        UID: 1000    # User ID para permissões
+        GID: 1000    # Group ID para permissões
+    volumes:
+      - ./:/opt/www  # Mount do código local no container
+    ports:
+      - 9501:9501    # Porta do servidor HTTP
+    environment:
+      - APP_ENV=dev
+      - SCAN_CACHEABLE=false  # Recarrega rotas automaticamente
+    entrypoint: php
+    command: /opt/www/bin/hyperf.php start
+    restart: unless-stopped  # Reinicia automaticamente se cair
+```
+
+#### **dev.Dockerfile**
+
+```dockerfile
+FROM hyperf/hyperf:8.4-alpine-v3.21-swoole
+
+# Configurações de ambiente
+ENV TIMEZONE=America/Sao_Paulo
+ENV APP_ENV=dev
+ENV SCAN_CACHEABLE=false
+
+# Cria usuário para evitar problemas de permissão
+RUN addgroup -g 1000 application && \
+    adduser -S -D -u 1000 -G application -s /bin/ash -h /home/application application
+
+# Configurações do PHP
+RUN { \
+    echo "upload_max_filesize=128M"; \
+    echo "post_max_size=128M"; \
+    echo "memory_limit=1G"; \
+} | tee conf.d/99_overrides.ini
+
+USER application
+WORKDIR /opt/www
+
+# Instala dependências
+COPY . /opt/www
+RUN composer install --no-scripts
+
+EXPOSE 9501
+
+ENTRYPOINT ["php", "/opt/www/bin/hyperf.php", "start"]
+```
+
+---
+
+### 🛠️ Comandos dentro do Container
+
+```bash
+# Acessar o shell do container
+docker exec -it hyperf-skeleton bash
+
+# Instalar dependências do Composer
+docker exec hyperf-skeleton composer install
+
+# Instalar nova dependência
+docker exec hyperf-skeleton composer require vendor/package
+
+# Rodar testes
+docker exec hyperf-skeleton php bin/phpunit
+
+# Limpar cache do container
+docker exec hyperf-skeleton rm -rf /opt/www/runtime/container
+
+# Ver processos rodando
+docker exec hyperf-skeleton ps aux
+
+# Ver extensões PHP carregadas
+docker exec hyperf-skeleton php -m
+```
+
+---
+
+### 🔄 Fluxo de Desenvolvimento
+
+#### **Hot Reload com Watcher (Recomendado ⭐)**
+
+Este projeto está configurado para usar o `hyperf/watcher` com hot reload automático. Sempre que você alterar um arquivo `.php` ou `.env`, o servidor reinicia automaticamente.
+
+**Configuração:**
+
+1. **Arquivo `.watcher.php`** (na raiz do projeto):
+   ```php
+   return [
+       'driver' => ScanFileDriver::class,
+       'bin' => PHP_BINARY,
+       'watch' => [
+           'dir' => ['app', 'config'],
+           'file' => ['.env'],
+           'scan_interval' => 2000, // 2 segundos
+       ],
+       'ext' => ['.php', '.env'],
+   ];
+   ```
+
+2. **docker-compose.yml** com comando watch:
+   ```yaml
+   command: /opt/www/bin/hyperf.php server:watch
+   ```
+
+**Como usar:**
+
+```bash
+# 1. Suba o container
+docker-compose up -d
+
+# 2. Edite seus arquivos localmente
+# - Controllers
+# - Middlewares
+# - Configurações
+# - .env
+
+# 3. O watcher detecta e reinicia automaticamente!
+# Veja nos logs: "File changed: app/Controller/UserController.php"
+```
+
+**Vantagens:**
+- ✅ Reinício automático ao mudar arquivos
+- ✅ Não precisa de `docker-compose restart`
+- ✅ Detecta mudanças em `app/` e `config/`
+- ✅ Suporta `.php` e `.env`
+
+---
+
+#### **Modo Normal (sem watcher)**
+
+Se preferir usar o modo normal sem watcher:
+
+```yaml
+# docker-compose.yml
+command: /opt/www/bin/hyperf.php start
+```
+
+Com `SCAN_CACHEABLE=false`, o Hyperf recarrega automaticamente:
+
+✅ **Funciona sem restart:**
+- Mudanças em **controllers**
+- Mudanças em **attributes/rotas**
+- Mudanças em **middleware existente**
+
+❌ **Precisa de restart:**
+- Criar **novas classes**
+- Mudar arquivos em `config/`
+- Instalar **novos pacotes Composer**
+
+**Comando rápido para restart:**
+```bash
+docker-compose restart hyperf-skeleton
+```
+
+---
+
+#### **Production Build**
+
+Para produção, altere as variáveis de ambiente:
+
+```yaml
+environment:
+  - APP_ENV=prod
+  - SCAN_CACHEABLE=true  # Habilita cache de annotations
+```
+
+E use o comando normal:
+```yaml
+command: /opt/www/bin/hyperf.php start
+```
+
+---
+
+### ⚠️ Solução de Problemas
+
+| Problema | Solução |
+|----------|---------|
+| Container não inicia | Verifique logs: `docker-compose logs hyperf-skeleton` |
+| Porta 9501 em uso | Altere a porta no `docker-compose.yml`: `"9502:9501"` |
+| Permissão de arquivos | Execute: `docker exec hyperf-skeleton chown -R application:application /opt/www` |
+| Composer falha | Execute: `docker exec hyperf-skeleton composer install --ignore-platform-reqs` |
+| Mudanças não refletem | Limpe o cache: `docker exec hyperf-skeleton rm -rf /opt/www/runtime/container` |
+| Container cai imediatamente | Verifique se há erros de sintaxe PHP nos logs |
+| **Watcher não detecta mudanças** | Verifique se `.watcher.php` existe na raiz |
+| **Watcher reinicia em loop** | Aumente `scan_interval` para `5000` no `.watcher.php` |
+| **Erro de git ownership** | Execute: `docker exec hyperf-skeleton git config --global --add safe.directory /opt/www` |
+
+---
+
+### 🔍 Debug do Watcher
+
+Para ver se o watcher está funcionando:
+
+```bash
+# Ver logs em tempo real
+docker-compose logs -f hyperf-skeleton
+
+# Deve aparecer algo como:
+# [INFO] File changed: app/Controller/UserController.php
+# [INFO] Restarting server...
+```
+
+Se o watcher não estiver detectando mudanças:
+
+1. Verifique se o arquivo `.watcher.php` existe na raiz do projeto
+2. Confirme que o comando no `docker-compose.yml` é `server:watch`
+3. Verifique as permissões dos arquivos no container
+
+---
+
+### 📊 Variáveis de Ambiente
+
+| Variável | Padrão | Descrição |
+|----------|--------|-----------|
+| `APP_ENV` | `dev` | Ambiente (dev, test, prod) |
+| `SCAN_CACHEABLE` | `false` | Cache de annotations (true em prod) |
+| `TIMEZONE` | `Asia/Shanghai` | Fuso horário do container |
+| `UID` | `1000` | ID do usuário no container |
+| `GID` | `1000` | ID do grupo no container |
+
+---
+
+### 🔗 Links Úteis
+
+- [Documentação oficial do Hyperf](https://hyperf.wiki)
+- [Imagens Docker do Hyperf](https://hub.docker.com/r/hyperf/hyperf)
+- [Repositório Docker oficial](https://github.com/hyperf/hyperf-docker)
+- [Docker Compose Reference](https://docs.docker.com/compose/)
+- [Hyperf Watcher Documentation](https://hyperf.wiki/3.1/en/watcher)
+
+---
+
+## Hints
+
+- A nice tip is to rename `hyperf-skeleton` of files like `composer.json` and `docker-compose.yml` to your actual project name.
+- Take a look at `config/routes.php` and `app/Controller/IndexController.php` to see an example of a HTTP entrypoint.
+
+**Remember:** you can always replace the contents of this README.md file to something that fits your project description.
