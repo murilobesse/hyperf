@@ -245,20 +245,252 @@ Coroutine::create(function () use ($channel) {
 
 ## 🎯 Quando Usar Paralelismo
 
-### ✅ Casos Ideais
+### ✅ Casos Ideais (com exemplos práticos)
 
-- **Múltiplas requisições HTTP/APIs**
-- **Queries de banco independentes**
-- **Leitura/escrita de arquivos**
-- **Processamento de filas**
-- **Operações I/O-bound em geral**
+#### 1. **Múltiplas requisições HTTP/APIs**
 
-### ❌ Quando Evitar
+**Cenário:** Você precisa buscar dados de 3 APIs diferentes para montar um dashboard.
 
-- **Operações CPU-bound intensivas**
-- **Tarefas que dependem de ordem estrita**
-- **Operações com efeitos colaterais compartilhados**
-- **Código crítico que requer transação atômica**
+```php
+// ❌ SEQUENCIAL - Lento (cada um espera o anterior)
+$users    = $http->get('https://api.example.com/users');    // 200ms
+$products = $http->get('https://api.example.com/products'); // 200ms
+$orders   = $http->get('https://api.example.com/orders');   // 200ms
+// Tempo total: 600ms
+
+// ✅ CONCORRENTE - Rápido (todos ao mesmo tempo)
+Coroutine::create(fn() => $users    = $http->get('https://api.example.com/users'));
+Coroutine::create(fn() => $products = $http->get('https://api.example.com/products'));
+Coroutine::create(fn() => $orders   = $http->get('https://api.example.com/orders'));
+$waitGroup->wait();
+// Tempo total: ~200ms (tempo da mais lenta)
+```
+
+**Analogia:** 
+- **Sequencial:** Fazer 3 compras em lojas diferentes indo e voltando para casa cada vez
+- **Concorrente:** Mandar 3 pessoas diferentes, cada uma em uma loja, todos voltam juntos
+
+---
+
+#### 2. **Queries de banco independentes**
+
+**Cenário:** Dashboard que mostra usuários, produtos e estatísticas.
+
+```php
+// ❌ SEQUENCIAL
+$usersCount    = DB::table('users')->count();    // 50ms
+$productsCount = DB::table('products')->count(); // 50ms
+$ordersCount   = DB::table('orders')->count();   // 50ms
+// Total: 150ms
+
+// ✅ CONCORRENTE
+Coroutine::create(fn() => $usersCount    = DB::table('users')->count());
+Coroutine::create(fn() => $productsCount = DB::table('products')->count());
+Coroutine::create(fn() => $ordersCount   = DB::table('orders')->count());
+$waitGroup->wait();
+// Total: ~50ms
+```
+
+**Importante:** Só use se as queries forem **independentes** (uma não precisa do resultado da outra).
+
+---
+
+#### 3. **Leitura/escrita de arquivos**
+
+**Cenário:** Processar 100 arquivos de log.
+
+```php
+// ❌ SEQUENCIAL - Lê um arquivo por vez
+foreach ($files as $file) {
+    $content = file_get_contents($file); // 10ms cada
+    process($content);
+}
+// 100 arquivos × 10ms = 1000ms (1 segundo)
+
+// ✅ CONCORRENTE - Lê múltiplos arquivos simultaneamente
+foreach ($files as $file) {
+    Coroutine::create(function () use ($file, $waitGroup) {
+        $waitGroup->add();
+        try {
+            $content = file_get_contents($file);
+            process($content);
+        } finally {
+            $waitGroup->done();
+        }
+    });
+}
+$waitGroup->wait();
+// ~10-50ms (dependendo do I/O do disco)
+```
+
+---
+
+#### 4. **Processamento de filas**
+
+**Cenário:** Enviar 50 emails de notificação.
+
+```php
+// ❌ SEQUENCIAL - Um email por vez
+foreach ($users as $user) {
+    Mail::send($user->email, 'Bem-vindo!'); // 100ms cada
+}
+// 50 usuários × 100ms = 5000ms (5 segundos!)
+
+// ✅ CONCORRENTE - Múltiplos emails simultaneamente
+foreach ($users as $user) {
+    Coroutine::create(function () use ($user, $waitGroup) {
+        $waitGroup->add();
+        try {
+            Mail::send($user->email, 'Bem-vindo!');
+        } finally {
+            $waitGroup->done();
+        }
+    });
+}
+$waitGroup->wait();
+// ~100-200ms (tempo do email mais lento)
+```
+
+---
+
+#### 5. **Operações I/O-bound em geral**
+
+**O que é I/O-bound?** Operações que esperam por:
+- Rede (HTTP, API, SOAP)
+- Banco de dados
+- Arquivos
+- Redis/Memcached
+- Filas (RabbitMQ, Kafka)
+
+**Regra prática:** Se a operação **espera** por algo externo, é candidata a paralelismo!
+
+---
+
+### ❌ Quando Evitar (com exemplos)
+
+#### 1. **Operações CPU-bound intensivas**
+
+**Cenário:** Processamento de imagem, cálculos complexos.
+
+```php
+// ❌ NÃO AJUDA - Corrotinas não aceleram CPU
+foreach ($images as $image) {
+    Coroutine::create(fn() => processImage($image)); // CPU intensivo
+}
+// Mesmo tempo que sequencial!
+
+// ✅ MELHOR - Use processos separados ou queue
+```
+
+**Por quê?** Corrotinas compartilham a mesma CPU. Se o gargalo é CPU, não há ganho.
+
+---
+
+#### 2. **Tarefas que dependem de ordem estrita**
+
+**Cenário:** Processamento onde o passo 2 precisa do resultado do passo 1.
+
+```php
+// ❌ NÃO FUNCIONA - Ordem importa!
+Coroutine::create(fn() => $step1 = processStep1());
+Coroutine::create(fn() => $step2 = processStep2($step1)); // ERRO! $step1 pode não existir
+Coroutine::create(fn() => $step3 = processStep3($step2)); // ERRO!
+
+// ✅ CORRETO - Sequencial mesmo
+$step1 = processStep1();
+$step2 = processStep2($step1);
+$step3 = processStep3($step2);
+```
+
+**Analogia:** Não dá para pintar o teto antes de construir a parede!
+
+---
+
+#### 3. **Operações com efeitos colaterais compartilhados**
+
+**Cenário:** Múltiplas corrotinas escrevendo no mesmo arquivo/variável.
+
+```php
+// ❌ PERIGO - Race condition!
+$counter = 0;
+foreach ($items as $item) {
+    Coroutine::create(function () use (&$counter) {
+        $counter++; // Várias corrotinas acessam mesma variável!
+    });
+}
+// Resultado imprevisível!
+
+// ✅ CORRETO - Use Channel ou Lock
+$channel = new Channel();
+foreach ($items as $item) {
+    Coroutine::create(fn() => $channel->push(1));
+}
+$counter = array_sum($channel->pop());
+```
+
+---
+
+#### 4. **Código crítico que requer transação atômica**
+
+**Cenário:** Transferência bancária, decremento de estoque.
+
+```php
+// ❌ PERIGO - Não use com operações financeiras!
+Coroutine::create(fn() => DB::transaction(fn() => debit($account1, 100)));
+Coroutine::create(fn() => DB::transaction(fn() => debit($account2, 100)));
+// Pode causar inconsistência!
+
+// ✅ CORRETO - Sequencial ou use locks adequados
+DB::transaction(function () use ($account1, $account2) {
+    debit($account1, 100);
+    debit($account2, 100);
+});
+```
+
+---
+
+### 📊 Tabela de Decisão
+
+| Situação | Paralelizar? | Por quê |
+|----------|--------------|---------|
+| 3+ requisições HTTP independentes | ✅ Sim | Ganho de 2-5x |
+| 10+ queries de banco independentes | ✅ Sim | Ganho de 3-10x |
+| Enviar 50+ emails | ✅ Sim | Ganho de 10-50x |
+| Processar imagem/vídeo | ❌ Não | CPU-bound |
+| Passo 2 depende do passo 1 | ❌ Não | Ordem importa |
+| Escrever no mesmo arquivo | ❌ Não | Race condition |
+| Transação financeira | ❌ Não | Requer atomicidade |
+| 1-2 operações rápidas | ⚠️ Talvez | Overhead > ganho |
+
+---
+
+### 🧪 Teste Prático: Vale a pena paralelizar?
+
+**Regra dos 3 R's:**
+
+1. **Requisições** - São 3+ operações?
+2. **Rede/IO** - São operações de I/O (não CPU)?
+3. **Independentes** - Uma não depende da outra?
+
+Se **SIM** para os 3 → **Paralelize!** 🚀
+
+**Exemplo:**
+
+```
+Buscar 5 produtos de APIs diferentes:
+✅ 5 requisições (≥3)
+✅ HTTP/Rede (I/O)
+✅ Independentes (um não precisa do outro)
+→ PARALELIZE! Ganho de ~4x
+```
+
+**Contra-exemplo:**
+
+```
+Processar 1 imagem:
+❌ 1 operação (<3)
+→ Não vale o overhead
+```
 
 ---
 
