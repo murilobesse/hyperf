@@ -47,6 +47,7 @@ curl -X POST http://localhost:9501/users \
 | 🛣️ Rotas e Controllers | [docs/rotas-controllers.md](docs/rotas-controllers.md) |
 | 🔐 Middlewares | [docs/middlewares.md](docs/middlewares.md) |
 | ⚙️ Configurações | [docs/configuracoes.md](docs/configuracoes.md) |
+| ⚡ Paralelismo e Corrotinas | [docs/paralelismo.md](docs/paralelismo.md) |
 | ❌ Solução de Problemas | [docs/troubleshooting.md](docs/troubleshooting.md) |
 
 ---
@@ -74,7 +75,30 @@ hyperf/
 - ✅ **Hot Reload** com watcher automático
 - ✅ **Middlewares** de autenticação e log
 - ✅ **Docker** configurado para desenvolvimento
+- ✅ **Paralelismo** com corrotinas (exemplo prático)
 - ✅ **Documentação** segmentada por tópico
+
+### 🧪 Exemplo de Paralelismo
+
+O projeto inclui um controller de demonstração de paralelismo:
+
+```bash
+# Execução sequencial (bloqueante)
+curl http://localhost:9501/parallelism/sequential
+
+# Execução concorrente (não-bloqueante)
+curl http://localhost:9501/parallelism/concurrent
+
+# Comparação completa
+curl http://localhost:9501/parallelism/compare
+```
+
+**Resultado típico:**
+- Sequencial: ~340ms (soma de todas as requisições)
+- Concorrente: ~150ms (tempo da mais lenta)
+- **Ganho: 2-3x mais rápido!** 🚀
+
+Veja mais em [docs/paralelismo.md](docs/paralelismo.md)
 
 ---
 

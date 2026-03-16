@@ -14,6 +14,7 @@ Bem-vindo à documentação do projeto Hyperf de estudo.
 | [🛣️ Rotas e Controllers](rotas-controllers.md) | Definição de rotas e controllers com Attributes |
 | [🔐 Middlewares](middlewares.md) | Criação e uso de middlewares |
 | [⚙️ Configurações](configuracoes.md) | Configuração do Hyperf e componentes |
+| [⚡ Paralelismo e Corrotinas](paralelismo.md) | Exemplos de execução concorrente |
 | [❌ Solução de Problemas](troubleshooting.md) | Troubleshooting de problemas comuns |
 
 ---
