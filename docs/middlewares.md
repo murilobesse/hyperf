@@ -378,5 +378,5 @@ Requisição → A → B → C → Controller → C → B → A → Resposta
 
 ## 📖 Links Úteis
 
-- [Hyperf Middleware Documentation](https://hyperf.wiki/3.1/en/middleware/middleware)
+- [Hyperf Middleware Documentation](https://hyperf.wiki/3.1/#/en/middleware/middleware)
 - [PSR-15 Middleware](https://www.php-fig.org/psr/psr-15/)

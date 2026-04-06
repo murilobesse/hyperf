@@ -357,5 +357,5 @@ SCAN_CACHEABLE=true
 
 ## 📖 Links Úteis
 
-- [Hyperf Configuration Documentation](https://hyperf.wiki/3.1/en/config)
-- [Hyperf Environment Variables](https://hyperf.wiki/3.1/en/config#env)
+- [Hyperf Configuration Documentation](https://hyperf.wiki/3.1/#/en/config)
+- [Hyperf Environment Variables](https://hyperf.wiki/3.1/#/en/config?id=env)

@@ -579,10 +579,10 @@ Coroutine::create(function () {
 
 ## 📖 Links Úteis
 
-- [Hyperf Coroutine Documentation](https://hyperf.wiki/3.1/en/coroutine/coroutine)
+- [Hyperf Coroutine Documentation](https://hyperf.wiki/3.1/#/en/coroutine)
 - [Swoole Coroutine Guide](https://www.swoole.co.uk/docs/coroutine)
-- [WaitGroup Example](https://hyperf.wiki/3.1/en/coroutine/waitgroup)
-- [Channel Example](https://hyperf.wiki/3.1/en/coroutine/channel)
+- [WaitGroup Example](https://hyperf.wiki/3.1/#/en/coroutine?id=waitgroup)
+- [Channel Example](https://hyperf.wiki/3.1/#/en/coroutine?id=channel)
 
 ---
 

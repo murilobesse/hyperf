@@ -250,5 +250,5 @@ curl http://localhost:9501/products
 
 ## 📖 Links Úteis
 
-- [Hyperf Watcher Documentation](https://hyperf.wiki/3.1/en/watcher)
+- [Hyperf Watcher Documentation](https://hyperf.wiki/3.1/#/en/watcher)
 - [GitHub - hyperf/watcher](https://github.com/hyperf/hyperf/tree/master/src/watcher)

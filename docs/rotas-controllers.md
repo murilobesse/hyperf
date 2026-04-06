@@ -396,5 +396,5 @@ Router::addGroup('/api', function () {
 
 ## 📖 Links Úteis
 
-- [Hyperf Router Documentation](https://hyperf.wiki/3.1/en/router)
+- [Hyperf Router Documentation](https://hyperf.wiki/3.1/#/en/router)
 - [PHP 8 Attributes](https://www.php.net/manual/en/language.attributes.overview.php)
