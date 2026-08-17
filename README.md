@@ -1,5 +1,4 @@
 # Hyperf - Projeto de Estudo
-
 API RESTful desenvolvida com **Hyperf Framework** para fins de estudo e aprendizado.
 
 ---
